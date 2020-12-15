@@ -20,31 +20,63 @@ import "./style.css";
 
 const App: React.FC = () => {
   const [query, setQuery] = useState("");
-  const [books, setBooks] = useState<BooksResponse>([]);
+  const [books, setBooks] = useState<BooksResponse>();
+  const [startIndex, setStartIndex] = useState(0);
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     const fetchFromApi = async () => {
-      const newBooks = await BookService.getBooks(query);
-      console.log(newBooks);
+      const newBooks = await BookService.getBooks(query, startIndex);
       setBooks(newBooks);
       setLoading(false);
     };
     fetchFromApi();
-  }, [query]);
+  }, [query, startIndex]);
+
+  const updateStartIndex = offset => setStartIndex(startIndex + offset);
+  const updateSearch = (query = "") => {
+    setStartIndex(0);
+    setQuery(query);
+  };
 
   return (
     <div>
-      <h1>Boogle</h1>
-      <h2>Welcome to Boogle, the number 1 book search engine</h2>
-      <input
-        placeholder="Start typing..."
-        onChange={({ target }) => setQuery(target.value)}
-      />
-      {query.length < 2 && <h3>Please make a search above</h3>}
-      {query && query.length >= 2 && isLoading && <h3>Loading...</h3>}
-      {query && !isLoading && <BookList {...books} />}
+      <div className="header">
+        <h1>Boogle</h1>
+        <h2>Welcome to Boogle, the number 1 book search engine</h2>
+      </div>
+      <div className="searchArea">
+        <input
+          placeholder="Start typing... (at least two characters)"
+          value={query}
+          onChange={({ target }) => updateSearch(target.value)}
+        />
+        <button onClick={() => updateSearch("")}>Clear</button>
+      </div>
+      <div className="results">
+        {query.length < 2 && (
+          <p className="instruction">Please make a search above</p>
+        )}
+        {query && query.length >= 2 && isLoading && (
+          <p className="instruction">Loading...</p>
+        )}
+        {query && !isLoading && books && <BookList {...books} />}
+      </div>
+      {query && !isLoading && (
+        <div className="pageNavigation">
+          <button
+            disabled={startIndex < 10}
+            onClick={() => updateStartIndex(-10)}
+            className="previousPage"
+          >
+            Previous page
+          </button>
+          <button onClick={() => updateStartIndex(10)} className="nextPage">
+            Next page
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,24 +8,27 @@ type BookListProps = {
   items: Book[];
   totalItems: number;
 };
+
 const BookList = (props: BookListProps) => {
-  const renderBookResult = ({ id, title, subtitle, imageLinks }) => (
-    <div key={id}>
-      <img src={imageLinks.thumbnail} alt="" />
-      <div>
+  const renderBookResult = ({
+    id,
+    volumeInfo: { title, subtitle, imageLinks }
+  }: Book) => (
+    <div key={id} className="bookResult">
+      <img src={imageLinks && imageLinks.thumbnail} alt="" />
+      <div className="bookDetails">
         <h3>{title}</h3>
         <h4>{subtitle}</h4>
       </div>
     </div>
   );
 
-  console.log("pr", props);
-
   return (
     <div>
       {props.items &&
-        props.items.map(({ volumeInfo }) => renderBookResult(volumeInfo))}
-      {!props.items && <h3>No results found</h3>}
+        !!props.items.length &&
+        props.items.map(book => renderBookResult(book))}
+      {!props.items && <p className="instruction">No results found</p>}
     </div>
   );
 };
