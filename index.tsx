@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { render } from "react-dom";
-import { BookService } from "./bookService";
+import BookList from "./components/BookList";
+import { BookService, BooksResponse } from "./services/bookService";
 import "./style.css";
 
 /**
@@ -17,13 +18,21 @@ import "./style.css";
  *    Show 10 books per page and implement going to next/previous page.
  */
 
-// example usage of book service to get books matching `Switzerland` (feel free to delete)
-BookService.getBooks("Switzerland").then(response => {
-  console.log(response);
-});
-
 const App: React.FC = () => {
   const [query, setQuery] = useState("");
+  const [books, setBooks] = useState<BooksResponse>([]);
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchFromApi = async () => {
+      const newBooks = await BookService.getBooks(query);
+      console.log(newBooks);
+      setBooks(newBooks);
+      setLoading(false);
+    };
+    fetchFromApi();
+  }, [query]);
 
   return (
     <div>
@@ -33,7 +42,9 @@ const App: React.FC = () => {
         placeholder="Start typing..."
         onChange={({ target }) => setQuery(target.value)}
       />
-      {query}
+      {query.length < 2 && <h3>Please make a search above</h3>}
+      {query && query.length >= 2 && isLoading && <h3>Loading...</h3>}
+      {query && !isLoading && <BookList {...books} />}
     </div>
   );
 };
